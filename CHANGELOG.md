@@ -1,5 +1,29 @@
 # Changelog
 
+## `github.com/tempoxyz/mpp-go@0.4.0`
+
+### Minor Changes
+
+- Reject server secret keys shorter than 32 bytes at construction instead of accepting forgeable HMAC-bound challenge IDs. `server.New` now returns `(*Mpp, error)`. (by @Erhnysr, [#112](https://github.com/tempoxyz/mpp-go/pull/112))
+- Add split credential validation and broadcast lifecycle hooks, with Tempo API relay configuration for server-side charges. (by @BrendanRyan, [#110](https://github.com/tempoxyz/mpp-go/pull/110))
+
+### Patch Changes
+
+- Fix the client challenge filter so a challenge whose `expires` cannot be parsed is skipped instead of treated as valid, preventing the client from paying a challenge the server is guaranteed to reject. (by @WinterRong, [#88](https://github.com/tempoxyz/mpp-go/pull/88))
+- Update Go dependencies in the weekly Dependabot batch. (by @dependabot[bot], [#109](https://github.com/tempoxyz/mpp-go/pull/109))
+- Batch routine dependency updates weekly and automatically merge patch and minor
+- updates after all pull request checks pass. (by @BrendanRyan, [#104](https://github.com/tempoxyz/mpp-go/pull/104))
+- Return a fresh `WWW-Authenticate: Payment` challenge when payment credential verification fails, allowing clients to retry with the current challenge. (by @PranjalPaliwal, [#74](https://github.com/tempoxyz/mpp-go/pull/74))
+- Decode a bare `0x` (and empty) hex quantity as zero in `ParseHexUint64`, matching `ParseHexBigInt` so both JSON-RPC integer decoders agree on zero-value forms returned by lenient nodes. (by @Salad, [#91](https://github.com/tempoxyz/mpp-go/pull/91))
+- Accept legacy challenge descriptions containing unescaped quotes. (by @BrendanRyan, [#105](https://github.com/tempoxyz/mpp-go/pull/105))
+- Reject a negative `decimals` in `ParseUnits` (and thus `TransformUnits`) instead of panicking on the fractional-part slice. (by @Alex, [#87](https://github.com/tempoxyz/mpp-go/pull/87))
+- Send relay broadcast `Idempotency-Key` headers under the canonical `mpp_` namespace instead of `mppx_`. The key is otherwise byte-identical (Keccak-256 of the signed transaction, or SHA-256 of the canonical relay input), so the previous prefix prevented the relay from deduplicating equivalent canonical and Go submissions of the same transaction or credential retry. Matches `src/tempo/server/Relay.ts` in the canonical mppx implementation. (by @Erhnysr, [#114](https://github.com/tempoxyz/mpp-go/pull/114))
+- Reject payment receipts that omit the `method` or `timestamp` field when parsing. Both are required base receipt fields per draft-ietf-httpauth-payment §5.3 and the canonical mppx schema; previously an incomplete receipt parsed successfully with an empty method and zero timestamp. (by @Erhnysr, [#113](https://github.com/tempoxyz/mpp-go/pull/113))
+- Reject malformed `WWW-Authenticate: Payment` auth-param lists instead of silently accepting trailing bare parameters or missing separators. (by @MarkHarrison, [#92](https://github.com/tempoxyz/mpp-go/pull/92))
+- Strip CR and LF characters in the default `FormatAuthenticate` path so a `Challenge` field containing `\r\n` (e.g. `Description`, `Realm`) can no longer split the `WWW-Authenticate` header and inject a response. `FormatAuthenticateStrict` continues to reject such values with an error. (by @Tleao, [#86](https://github.com/tempoxyz/mpp-go/pull/86))
+- Refuse standalone `Transport` auto-pay after a redirect. A `Transport` used with a bare `http.Client` (no `CheckRedirect`) had none of `Client.Do`'s cross-origin redirect protection, so a redirect to an attacker origin could be auto-paid. The Transport now fails closed on any redirect-produced request when no trusted origin is pinned in the context. (by @Mattew, [#84](https://github.com/tempoxyz/mpp-go/pull/84))
+- Reject non-hexadecimal 32-byte memos in `EncodeTransferWithMemo` instead of producing invalid Tempo calldata. (by @MarkHarrison, [#100](https://github.com/tempoxyz/mpp-go/pull/100))
+
 ## `github.com/tempoxyz/mpp-go@0.3.0`
 
 ### Minor Changes
